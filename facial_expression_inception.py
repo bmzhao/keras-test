@@ -6,6 +6,8 @@ from keras.layers import Dense, GlobalAveragePooling2D
 import numpy as np
 import os
 import cv2
+from sklearn.model_selection import train_test_split
+
 
 
 def preprocess(img):
@@ -26,22 +28,25 @@ def loadTargetData(filename, num_classes):
 
 if __name__ == '__main__':
 
-    # batch_size = 128
-    batch_size = 10
-    # epochs = 12
-    epochs = 1
+    batch_size = 100
+    # batch_size = 10
+    epochs = 100
+    # epochs = 1
 
     num_classes = 3
     img_rows, img_cols = 48, 48
 
+
     resources_dir = os.path.join(os.path.dirname(__file__), 'resources')
 
-    TRAIN_DATA_FILE = os.path.join(resources_dir, 'train_data_limited.csv')
-    TRAIN_TARGET_FILE = os.path.join(resources_dir, 'train_target_limited.csv')
+    TRAIN_DATA_FILE = os.path.join(resources_dir, 'train_data.csv')
+    TRAIN_TARGET_FILE = os.path.join(resources_dir, 'train_target.csv')
     TEST_DATA_FILE = os.path.join(resources_dir, 'test_data.csv')
 
     x_train = loadInputData(TRAIN_DATA_FILE)
     y_train = loadTargetData(TRAIN_TARGET_FILE, num_classes)
+
+    x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, test_size=0.10)
 
     x_test = loadInputData(TEST_DATA_FILE)
 
@@ -69,7 +74,10 @@ if __name__ == '__main__':
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
     # train the model on the new data for a few epochs
-    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1)
+    model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1, validation_data=(x_validation, y_validation))
+
+    print('Saving Model...')
+    model.save(os.path.join(resources_dir, 'modelStage1.h5'))
 
     # at this point, the top layers are well trained and we can start fine-tuning
     # convolutional layers from inception V3. We will freeze the bottom N layers
@@ -97,4 +105,6 @@ if __name__ == '__main__':
     # alongside the top Dense layers
     model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=1)
 
-    print(np.argmax(model.predict(x_test[0:2]), axis=1))
+    model.save(os.path.join(resources_dir, 'model.h5'))
+
+    print(np.argmax(model.predict(x_test), axis=1))

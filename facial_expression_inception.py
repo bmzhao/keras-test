@@ -21,6 +21,7 @@ def loadInputData(filename):
     return np.array(list(map(preprocess, input)))
 
 
+
 def loadTargetData(filename, num_classes):
     target = np.loadtxt(filename, np.uint8)
     return keras.utils.to_categorical(target, num_classes)
@@ -44,6 +45,8 @@ if __name__ == '__main__':
     TEST_DATA_FILE = os.path.join(resources_dir, 'test_data.csv')
 
     x_train = loadInputData(TRAIN_DATA_FILE)
+
+
     y_train = loadTargetData(TRAIN_TARGET_FILE, num_classes)
 
     x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, test_size=0.10)
